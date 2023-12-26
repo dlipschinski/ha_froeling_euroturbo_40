@@ -1,0 +1,11 @@
+{
+  "domain": "ha_froeling_euroturbo_40",
+  "name": "Fröling Euroturbo 40",
+  "config_flow": true,
+  "documentation": "README",
+  "version": "0.0.1",
+  "codeowners": [
+    "dlipschinski@gmail.com"
+  ],
+  "requirements": ["pyserial==3.5","hexdump==3.3"]
+}
