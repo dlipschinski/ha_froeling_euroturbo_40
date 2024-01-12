@@ -6,7 +6,7 @@ from homeassistant.helpers.dispatcher import (
     async_dispatcher_connect,
     async_dispatcher_send,
 )
-from homeassistant.const import UnitOfTemperature
+from homeassistant.const import UnitOfTemperature, UnitOfTime
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.util.dt import utcnow
 from homeassistant.components.sensor import (
@@ -47,7 +47,8 @@ SENSOR_UNIT_MAPPING = {
     "U": REVOLUTIONS_PER_MINUTE,
     "°": UnitOfTemperature.CELSIUS,
     "%": PERCENTAGE,
-    "None": None
+    "None": None,
+    "h" : UnitOfTime.HOURS
 }
    
 
@@ -243,7 +244,7 @@ class FrlngCANCom():
         for cur_line in range(4):
             try:
                 # get the current lcd line and create string of it
-                cur_lcd_line = ''.join(self._lcd_buf[lcd_line_addr[cur_line]:lcd_line_addr[cur_line]+20])
+                cur_lcd_line = ''.join(self._lcd_buf[lcd_line_addr[cur_line]:lcd_line_addr[cur_line]+19])
             except:
                 LOGGER.error("Fail to join lcd line: " + str(error) + " Current-LCDline:" + str(cur_line) +  " Address: " + str(self._lcd_addr))
                 continue
@@ -252,6 +253,14 @@ class FrlngCANCom():
                 name = splitted[0].strip().replace('.','')
                 value = splitted[1].strip()
                 unit = splitted[2].strip()
+                # Handle some special names:
+                if name == "Heizungspumpe":
+                    name = name+value
+                    value = unit
+                    unit = "None"
+                if name == "HEIZZEITEN":
+                    # ignore
+                    continue
                 LOGGER.debug("Name: " + str(name) + " Value: " + str(value) + " Unit: " + str(unit) + " LCD Line: " + cur_lcd_line)
             # create or update the sensor
             except Exception as error:
