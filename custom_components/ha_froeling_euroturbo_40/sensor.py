@@ -165,6 +165,7 @@ class FrlngCANCom():
         while self._send_running:
             now = utcnow()
             if now - last_update > min_time:
+                last_update_time = time
                 for curr_send_seq in update_send_seq:
                     if self._send_running == False:
                         return
@@ -183,7 +184,6 @@ class FrlngCANCom():
                             await asyncio.sleep(10*60)                           
                             # start the sequence from beginnign
                             break
-                last_update_time = time 
             else:
                 await asyncio.sleep(0.1) # idle time
         LOGGER.info("send loop has been stopped")
