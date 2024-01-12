@@ -1,6 +1,7 @@
 """Test sensor for froeling heater integration."""
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.ha_froeling_euroturbo_40.const import (DOMAIN, CONF_CAN_BUS,)
+from custom_components.ha_froeling_euroturbo_40.sensor import FrlngButtonCodes
 import asyncio
 import can
 
@@ -41,39 +42,57 @@ async def test_sensor(hass):
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     test_can = can.interface.Bus('test_can', interface='virtual')
-    
-    send_can_string(test_can,0,"Pufferladezust. 80% ")
-    send_can_string(test_can,1,"Rücklauftemp    61° ")
+    reader = can.AsyncBufferedReader()
+    notifier = can.Notifier(test_can, [reader], loop=hass.loop)
+
+    await asyncio.sleep(0.1)
+    # wait for first button 
+    cnt = 0
+    while cnt < 3:
+        msg = await reader.get_message()
+        if msg.data[0] == FrlngButtonCodes.BUTTON_LEFT:
+            cnt += 1
+    send_can_string(test_can,0,"Kessel in Betrieb   ")
+    send_can_string(test_can,1,"Pufferladezust. 80% ")
     send_can_string(test_can,2,"Drehzahl.     1500U ")
-    send_can_string(test_can,3,"Ausentemp       -0° ")
-    await asyncio.sleep(0.5)
+    send_can_string(test_can,3,"Ausentemp       -1° ")
+    msg = await reader.get_message()
+    while msg.data[0] != FrlngButtonCodes.BUTTON_RIGHT:
+        msg = await reader.get_message()
     state = hass.states.get("sensor.ha_froeling_euroturbo_40_froeling1_pufferladezust")
     assert state
     assert state.state == "80"
     state = hass.states.get("sensor.ha_froeling_euroturbo_40_froeling1_drehzahl")
     assert state
     assert state.state == "1500"
-    state = hass.states.get("sensor.ha_froeling_euroturbo_40_froeling1_rucklauftemp")
+    state = hass.states.get("sensor.ha_froeling_euroturbo_40_froeling1_ausentemp")
     assert state
-    assert state.state == "61"
+    assert state.state == "-1"
 
-    send_can_string(test_can,0,"Pufferladezust. 81% ")
-    await asyncio.sleep(0.5)
-    state = hass.states.get("sensor.ha_froeling_euroturbo_40_froeling1_pufferladezust")
-    assert state
-    assert state.state == "81"
+    # wait for first right button
+    msg = await reader.get_message()
+    while msg.data[0] != FrlngButtonCodes.BUTTON_LEFT:
+        msg = await reader.get_message()
+    
+    send_can_string(test_can,0,"Puffertmp. oben 82° ")
+    send_can_string(test_can,1,"Puffertmp.mitte 72° ")
+    send_can_string(test_can,2,"Puffertmp.unten 62° ")
+    send_can_string(test_can,3,"                    ")
+    
+    msg = await reader.get_message()
+    while msg.data[0] != FrlngButtonCodes.BUTTON_RIGHT:
+        msg = await reader.get_message()
 
-    send_can_string(test_can,1,"Kesseltemp.IST  63° ")
-    await asyncio.sleep(0.5)
-    state = hass.states.get("sensor.ha_froeling_euroturbo_40_froeling1_kesseltemp_ist")
+    state = hass.states.get("sensor.ha_froeling_euroturbo_40_froeling1_puffertmp_oben") 
     assert state
-    assert state.state == "63"
-    send_can_string(test_can,1,"Abgastemp. IST 161° ")
-    await asyncio.sleep(0.5)
-    state = hass.states.get("sensor.ha_froeling_euroturbo_40_froeling1_abgastemp_ist")
+    assert state.state == "82"
+    state = hass.states.get("sensor.ha_froeling_euroturbo_40_froeling1_puffertmpmitte")
     assert state
-    assert state.state == "161"
-
+    assert state.state == "72"
+    state = hass.states.get("sensor.ha_froeling_euroturbo_40_froeling1_puffertmpunten")
+    assert state
+    assert state.state == "62"
+    
     send_can_string(test_can,0,"Kessel in Betrieb   ")
     await asyncio.sleep(0.5)
     send_can_string(test_can,0,"Kessel ausgeschalt. ")
@@ -82,6 +101,14 @@ async def test_sensor(hass):
     await asyncio.sleep(0.5)
     send_can_string(test_can,0,"Kesseltür ist offen ")
     await asyncio.sleep(0.5)
-    
+    # todo check kessel_status
+
+    # wait for first right button
+    msg = await reader.get_message()
+    while msg.data[0] != FrlngButtonCodes.BUTTON_RIGHT:
+        msg = await reader.get_message()
+        
+    reader.stop()
+    notifier.stop()
     test_can.shutdown()
     await hass.config_entries.async_remove(entry.entry_id)
