@@ -1,6 +1,6 @@
 pytest==7.4.3
 pytest-asyncio==0.21.0
-homeassistant==2023.12.3
-pyserial==3.5
-pytest-homeassistant-custom-component==0.13.85
+homeassistant==2024.1.2
+python-can==4.3.1
+pytest-homeassistant-custom-component==0.13.88
 hexdump==3.3

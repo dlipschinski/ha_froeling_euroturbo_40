@@ -7,5 +7,5 @@
   "codeowners": [
     "dlipschinski@gmail.com"
   ],
-  "requirements": ["pyserial==3.5","hexdump==3.3"]
+  "requirements": ["python-can==4.3.1"]
 }

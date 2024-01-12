@@ -1,21 +1,21 @@
-"""Config flow for EDL21 integration."""
+"""Config flow for froeling euroturbo 40  integration."""
 
 import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResult
 
-from .const import CONF_SERIAL_PORT, DEFAULT_TITLE, DOMAIN
+from .const import CONF_CAN_BUS, DEFAULT_TITLE, DOMAIN
 
 DATA_SCHEMA = vol.Schema(
     {
-        vol.Required(CONF_SERIAL_PORT): str,
+        vol.Required(CONF_CAN_BUS): str,
     }
 )
 
 
-class ETAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """ETA config flow."""
+class FrlngConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """froeling euroturbo 40 config flow."""
 
     VERSION = 1
 
@@ -25,7 +25,7 @@ class ETAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle the user setup step."""
         if user_input is not None:
             self._async_abort_entries_match(
-                {CONF_SERIAL_PORT: user_input[CONF_SERIAL_PORT]}
+                {CONF_CAN_BUS: user_input[CONF_CAN_BUS]}
             )
 
             return self.async_create_entry(
