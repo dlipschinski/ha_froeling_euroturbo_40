@@ -168,12 +168,13 @@ class FrlngCANCom():
                     if self._send_running == False:
                         return
                     if curr_send_seq == FrlngButtonCodes.REFRESH_DISPLAY:
+                        await asyncio.sleep(0.5)
                         self.parse_lcd()
                     else:
                         self.send_button(curr_send_seq)
-                        await asyncio.sleep(0.05)
-                        self.send_button(FrlngButtonCodes.BUTTON_NO_BUT)
                         await asyncio.sleep(0.1)
+                        self.send_button(FrlngButtonCodes.BUTTON_NO_BUT)
+                        await asyncio.sleep(0.2)
                         if self._pause_buttonsseq == True:
                             # block updating for 10minutes
                             LOGGER.info("Stopping refresh for 10 minutes")
