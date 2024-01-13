@@ -2,7 +2,7 @@
 from typing import Final
 import logging
 LOGGER = logging.getLogger(__package__)
-DOMAIN = "ha_froeling_euroturbo_40"
+DOMAIN = "froeling"
 CONF_CAN_BUS = "can_bus"
 DEFAULT_TITLE = "Fröling Euroturbo40"
 DEFAULT_DEVICE_NAME = "Fröling Euroturbo40"

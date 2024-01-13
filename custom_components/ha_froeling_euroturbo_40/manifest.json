@@ -1,8 +1,10 @@
 {
-  "domain": "ha_froeling_euroturbo_40",
+  "domain": "froeling",
   "name": "Fröling Euroturbo 40",
   "config_flow": true,
   "documentation": "README",
+  "integration_type": "hub",
+  "iot_class": "local_push",
   "version": "0.0.1",
   "codeowners": [
     "dlipschinski@gmail.com"

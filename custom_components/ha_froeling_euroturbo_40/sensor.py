@@ -12,6 +12,7 @@ from homeassistant.util.dt import utcnow
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
+    SensorEntityDescription,
     SensorStateClass,
 )
 from homeassistant.const import (
@@ -154,18 +155,21 @@ class FrlngCANCom():
             return can.Bus('test_can', interface='virtual')
         return can.Bus(interface='socketcan', channel=can_net_dev, receive_own_messages=False)
 
-    def send_button(self,button):
-        send_msg = can.Message(arbitration_id=FrlngCANArbID.CMD_BUTTON,is_extended_id=False,data=[button])
-        self._can.send(send_msg)
+    async def send_button(self,button):
+        msg = can.Message(arbitration_id=FrlngCANArbID.CMD_BUTTON,is_extended_id=False,data=[button])
+        self._can.send(msg)
+        await asyncio.sleep(0.1)
+        msg.data[0] = FrlngButtonCodes.BUTTON_NO_BUT
+        self._can.send(msg)
+        await asyncio.sleep(0.2)
 
     async def send_loop(self):
         """ The send loop thread """
         min_time = timedelta(seconds=60)
-        last_update = utcnow()-min_time
+        last_update_time = utcnow()-min_time # set update time to directly start updating the display
         while self._send_running:
             now = utcnow()
-            if now - last_update > min_time:
-                last_update_time = time
+            if now - last_update_time > min_time:
                 for curr_send_seq in update_send_seq:
                     if self._send_running == False:
                         return
@@ -173,10 +177,6 @@ class FrlngCANCom():
                         await asyncio.sleep(0.5)
                         self.parse_lcd()
                     else:
-                        self.send_button(curr_send_seq)
-                        await asyncio.sleep(0.1)
-                        self.send_button(FrlngButtonCodes.BUTTON_NO_BUT)
-                        await asyncio.sleep(0.2)
                         if self._pause_buttonsseq == True:
                             # block updating for 10minutes
                             LOGGER.info("Stopping refresh for 10 minutes")
@@ -184,9 +184,12 @@ class FrlngCANCom():
                             await asyncio.sleep(10*60)                           
                             # start the sequence from beginnign
                             break
+                        await self.send_button(curr_send_seq)
+                last_update_time = now
             else:
-                await asyncio.sleep(0.1) # idle time
+                await asyncio.sleep(0.5) # idle time
         LOGGER.info("send loop has been stopped")
+
     async def can_start_update(self):
         """Start receiving"""
         LOGGER.info("Starting CAN bus")
@@ -204,7 +207,6 @@ class FrlngCANCom():
         self._notifier.stop()
         await asyncio.sleep(0.1)
         self._send_running = False
-       
 
     def can_msg_receive(self, msg: can.Message) -> None:
         """Callback on new CAN message"""
@@ -324,11 +326,13 @@ class FrlngEntity(SensorEntity):
         self._async_remove_dispatcher = None
         self._attr_unique_id = f"{dev_id}_{name}"
         #self._attr_device_info = DeviceInfo(
-        #    identifiers={(DOMAIN, self._dev_id)},
+        #    identifiers={(DOMAIN, self._attr_unique_id)},
         #    name=DEFAULT_DEVICE_NAME,
         #)
+        
     def get_unique_id(self):
         return self._attr_unique_id
+
     async def async_added_to_hass(self) -> None:
         """Run when entity about to be added to hass."""
 

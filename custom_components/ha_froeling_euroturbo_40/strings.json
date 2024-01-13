@@ -5,11 +5,12 @@
     },
     "step": {
       "user": {
-        "title": "Select serial port",
+        "title": "Add your CAN based Fröling supramat 40",
         "data": {
-          "serial_port": "[%key:common::config_flow::data::usb_path%]"
+          "can_bus": "can0"
         }
       }
     }
   }
 }
+  

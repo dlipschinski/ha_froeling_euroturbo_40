@@ -59,13 +59,13 @@ async def test_sensor(hass):
     msg = await reader.get_message()
     while msg.data[0] != FrlngButtonCodes.BUTTON_RIGHT:
         msg = await reader.get_message()
-    state = hass.states.get("sensor.ha_froeling_euroturbo_40_froeling1_pufferladezust")
+    state = hass.states.get("sensor.froeling_froeling1_pufferladezust")
     assert state
     assert state.state == "80"
-    state = hass.states.get("sensor.ha_froeling_euroturbo_40_froeling1_drehzahl")
+    state = hass.states.get("sensor.froeling_froeling1_drehzahl")
     assert state
     assert state.state == "1500"
-    state = hass.states.get("sensor.ha_froeling_euroturbo_40_froeling1_ausentemp")
+    state = hass.states.get("sensor.froeling_froeling1_ausentemp")
     assert state
     assert state.state == "-1"
 
@@ -83,13 +83,13 @@ async def test_sensor(hass):
     while msg.data[0] != FrlngButtonCodes.BUTTON_RIGHT:
         msg = await reader.get_message()
 
-    state = hass.states.get("sensor.ha_froeling_euroturbo_40_froeling1_puffertmp_oben") 
+    state = hass.states.get("sensor.froeling_froeling1_puffertmp_oben") 
     assert state
     assert state.state == "82"
-    state = hass.states.get("sensor.ha_froeling_euroturbo_40_froeling1_puffertmpmitte")
+    state = hass.states.get("sensor.froeling_froeling1_puffertmpmitte")
     assert state
     assert state.state == "72"
-    state = hass.states.get("sensor.ha_froeling_euroturbo_40_froeling1_puffertmpunten")
+    state = hass.states.get("sensor.froeling_froeling1_puffertmpunten")
     assert state
     assert state.state == "62"
     
