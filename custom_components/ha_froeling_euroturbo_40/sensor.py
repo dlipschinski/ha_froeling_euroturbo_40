@@ -19,6 +19,7 @@ from homeassistant.const import (
     ATTR_TEMPERATURE,
     REVOLUTIONS_PER_MINUTE,
     PERCENTAGE,
+    EntityCategory,
     EVENT_HOMEASSISTANT_STOP,
 )
 
@@ -31,6 +32,7 @@ from typing import (List,Any)
 import binascii
 import asyncio
 import time
+import slugify 
 from datetime import timedelta
 
 from .const import (
@@ -51,7 +53,126 @@ SENSOR_UNIT_MAPPING = {
     "None": None,
     "h" : UnitOfTime.HOURS
 }
-   
+
+SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
+    SensorEntityDescription(
+        key="abgastemp_ist",
+        translation_key="abgas_temperatur",
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.TEMPERATURE,
+    ),
+    SensorEntityDescription(
+        key="aussentemperatur",
+        translation_key="ausen_temperatur",
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.TEMPERATURE,
+    ),
+    SensorEntityDescription(
+        key="puffertmp_oben",
+        translation_key="puffer_temperatur_oben",
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.TEMPERATURE,
+    ),
+    SensorEntityDescription(
+        key="puffertmp_mitte",
+        translation_key="puffer_temperatur_mitte",
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.TEMPERATURE,
+    ),
+    SensorEntityDescription(
+        key="puffertmp_unten",
+        translation_key="puffer_temperatur_unten",
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.TEMPERATURE,
+    ),
+    SensorEntityDescription(
+        key="kesselrucklauft",
+        translation_key="kessel_rucklauf_temperatur",
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.TEMPERATURE,
+    ),
+    SensorEntityDescription(
+        key="kesseltemp_ist",
+        translation_key="kessel_temperatur",
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.TEMPERATURE,
+    ),
+    SensorEntityDescription(
+        key="pufferladezust",
+        icon="mdi:water-boiler",
+        translation_key="puffer_ladezustand",
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=PERCENTAGE,
+    ),
+    SensorEntityDescription(
+        key="betriebsstd",
+        translation_key="betriebsstunden",
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.DURATION,
+        native_unit_of_measurement=UnitOfTime.HOURS,
+    ),
+    SensorEntityDescription(
+        key="geblase_ist",
+        translation_key="geblase_drehzahl",
+        icon="mdi:fan",
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=REVOLUTIONS_PER_MINUTE,
+    ),
+    SensorEntityDescription(
+        key="stellmot_u_ist",
+        translation_key="stellmotor_unten",
+        icon="mdi:arrow-oscillating",
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=PERCENTAGE,
+    ),
+    SensorEntityDescription(
+        key="stellmot_o_ist",
+        translation_key="stellmotor_oben",
+        icon="mdi:arrow-oscillating",
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=PERCENTAGE,
+    ),
+    SensorEntityDescription(
+        key="sauerstoffwert",
+        translation_key="sauerstoffwert",
+        icon="mdi:engine-outline",
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=PERCENTAGE,
+    ),
+    SensorEntityDescription(
+        key="kessel_status",
+        translation_key="kessel_status",
+        icon="mdi:list-status",
+        device_class=SensorDeviceClass.ENUM,
+    ),
+    SensorEntityDescription(
+        key="heizungspumpe1",
+        translation_key="heizungspumpe1",
+        icon="mdi:pump",
+        device_class=SensorDeviceClass.ENUM,
+    ),
+    SensorEntityDescription(
+        key="heizungspumpe2",
+        translation_key="heizungspumpe2",
+        icon="mdi:pump",
+        device_class=SensorDeviceClass.ENUM,
+    ),
+    SensorEntityDescription(
+        key="vorlauftmp2_ist",
+        translation_key="vorlauf_ist_temperatur_2",
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.TEMPERATURE,
+    ),
+    SensorEntityDescription(
+        key="vorlauftmp2soll",
+        translation_key="vorlauf_soll_temperatur_2",
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.TEMPERATURE,
+    ),
+    
+)
+
+SENSORS = {desc.key: desc for desc in SENSOR_TYPES}
 
 class FrlngCANArbID(enum.IntEnum):
     CMD_TIME = 0x018
@@ -179,7 +300,7 @@ class FrlngCANCom():
                     else:
                         if self._pause_buttonsseq == True:
                             # block updating for 10minutes
-                            LOGGER.info("Stopping refresh for 10 minutes")
+                            LOGGER.info("User pressed button, stopping refresh for 10 minutes")
                             self._pause_buttonsseq = False
                             await asyncio.sleep(10*60)                           
                             # start the sequence from beginnign
@@ -188,11 +309,10 @@ class FrlngCANCom():
                 last_update_time = now
             else:
                 await asyncio.sleep(0.5) # idle time
-        LOGGER.info("send loop has been stopped")
 
     async def can_start_update(self):
         """Start receiving"""
-        LOGGER.info("Starting CAN bus")
+        LOGGER.debug("Starting CAN bus")
         try:
             self._notifier = can.Notifier(self._can, self._can_listeners, loop=self._hass.loop)
         except Exception as error:
@@ -203,7 +323,7 @@ class FrlngCANCom():
 
     async def can_stop_update(self):
         """Stop receiving"""
-        LOGGER.info("Stopping CAN bus")
+        LOGGER.debug("Stopping CAN bus")
         self._notifier.stop()
         await asyncio.sleep(0.1)
         self._send_running = False
@@ -252,9 +372,9 @@ class FrlngCANCom():
                 continue
             try:
                 splitted = re.split(r'([-]?\d+[.\d]*)', cur_lcd_line)
-                name = splitted[0].strip().replace('.','')
-                value = splitted[1].strip()
-                unit = splitted[2].strip()
+                name = ''.join(splitted[0:(len(splitted)-2)]).strip()
+                value = splitted[-2].strip()
+                unit = splitted[-1].strip()
                 # Handle some special names:
                 if name == "Heizungspumpe":
                     name = name+value
@@ -263,6 +383,7 @@ class FrlngCANCom():
                 if name == "HEIZZEITEN":
                     # ignore
                     continue
+                name = slugify.slugify(name, separator="_")
                 LOGGER.debug("Name: " + str(name) + " Value: " + str(value) + " Unit: " + str(unit) + " LCD Line: " + cur_lcd_line)
             # create or update the sensor
             except Exception as error:
@@ -275,13 +396,17 @@ class FrlngCANCom():
                     LOGGER.debug("Exception during parsing lcd line " + str(cur_line) + " :" + str(error) + " Current-LCDline:" + cur_lcd_line)
                     continue
             try:
-                sensor_entry = self._registered_values[name+unit]
+                sensor_entry = self._registered_values[name]
             except:
                 # instantiate the sensor
-                LOGGER.info("Adding sensor: Name: " + str(name) + " Value: " + str(value) + " Unit: " + str(unit))
-                frlng_sens = FrlngEntity(self._dev_id, name, unit, value)
-                self._registered_values[name+unit] = frlng_sens
-                self._async_add_entities([frlng_sens], update_before_add=True)
+                entity_description = SENSORS.get(name)
+                if entity_description:
+                    LOGGER.debug("Adding sensor: Name: " + str(name) + " Value: " + str(value) + " Unit: " + str(unit))
+                    frlng_sens = FrlngEntity(self._dev_id, entity_description, name, unit, value)
+                    self._registered_values[name] = frlng_sens
+                    self._async_add_entities([frlng_sens], update_before_add=True)
+                else:
+                    LOGGER.debug("No entity description available for: " +  name)    
             else:
                 # update the sensor
                 LOGGER.debug("Update sensor: Name: " + str(name) + " Value: " + str(value) + " Unit: " + str(unit))
@@ -316,20 +441,22 @@ class FrlngEntity(SensorEntity):
 
     _attr_should_poll = False
     _attr_has_entity_name = True
-
-    def __init__(self, dev_id, name, unit, value):
+    
+    def __init__(self, dev_id, entity_description, name, unit, value):
         """Initialize a Fröling Entity."""
         self._dev_id = dev_id
-        self._name = name
-        self._unit = unit
-        self._value = value
+        self.my_name = name
+        self.my_unit = unit
+        self.my_value = value
         self._async_remove_dispatcher = None
+        self.entity_description = entity_description
         self._attr_unique_id = f"{dev_id}_{name}"
-        #self._attr_device_info = DeviceInfo(
-        #    identifiers={(DOMAIN, self._attr_unique_id)},
-        #    name=DEFAULT_DEVICE_NAME,
-        #)
-        
+        #self._attr_name = f"{name}"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, dev_id)},
+            name=DEFAULT_DEVICE_NAME,
+        )
+
     def get_unique_id(self):
         return self._attr_unique_id
 
@@ -339,11 +466,11 @@ class FrlngEntity(SensorEntity):
         @callback
         def handle_new_value(name, value, unit):
             """Update value and update stat if changed"""
-            assert self._name == name
-            assert self._unit == unit
-            if self._value == value:
+            assert self.my_name == name
+            assert self.my_unit == unit
+            if self.my_value == value:
                 return
-            self._value = value
+            self.my_value = value
             self.async_write_ha_state()
 
         self._async_remove_dispatcher = async_dispatcher_connect(
@@ -358,9 +485,9 @@ class FrlngEntity(SensorEntity):
     @property
     def native_value(self) -> str:
         """Return the value of the last received telegram."""
-        return self._value
+        return self.my_value
 
     @property
     def native_unit_of_measurement(self) -> str | None:
         """Return the unit of measurement."""
-        return SENSOR_UNIT_MAPPING[self._unit]
+        return SENSOR_UNIT_MAPPING[self.my_unit]

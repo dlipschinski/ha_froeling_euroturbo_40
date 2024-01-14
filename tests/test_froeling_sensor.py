@@ -54,18 +54,18 @@ async def test_sensor(hass):
             cnt += 1
     send_can_string(test_can,0,"Kessel in Betrieb   ")
     send_can_string(test_can,1,"Pufferladezust. 80% ")
-    send_can_string(test_can,2,"Drehzahl.     1500U ")
-    send_can_string(test_can,3,"Ausentemp       -1° ")
+    send_can_string(test_can,2,"Gebläse IST   1500U ")
+    send_can_string(test_can,3,"Außentemperatur -1° ")
     msg = await reader.get_message()
     while msg.data[0] != FrlngButtonCodes.BUTTON_RIGHT:
         msg = await reader.get_message()
-    state = hass.states.get("sensor.froeling_froeling1_pufferladezust")
+    state = hass.states.get("sensor.froling_euroturbo40_froeling1_pufferladezust")
     assert state
     assert state.state == "80"
-    state = hass.states.get("sensor.froeling_froeling1_drehzahl")
+    state = hass.states.get("sensor.froling_euroturbo40_froeling1_geblase_ist")
     assert state
     assert state.state == "1500"
-    state = hass.states.get("sensor.froeling_froeling1_ausentemp")
+    state = hass.states.get("sensor.froling_euroturbo40_froeling1_aussentemperatur")
     assert state
     assert state.state == "-1"
 
@@ -78,35 +78,39 @@ async def test_sensor(hass):
     send_can_string(test_can,1,"Puffertmp.mitte 72° ")
     send_can_string(test_can,2,"Puffertmp.unten 62° ")
     send_can_string(test_can,3,"                    ")
-    
+        
     msg = await reader.get_message()
     while msg.data[0] != FrlngButtonCodes.BUTTON_RIGHT:
         msg = await reader.get_message()
 
-    state = hass.states.get("sensor.froeling_froeling1_puffertmp_oben") 
+    state = hass.states.get("sensor.froling_euroturbo40_froeling1_puffertmp_oben") 
     assert state
     assert state.state == "82"
-    state = hass.states.get("sensor.froeling_froeling1_puffertmpmitte")
+    state = hass.states.get("sensor.froling_euroturbo40_froeling1_puffertmp_mitte")
     assert state
     assert state.state == "72"
-    state = hass.states.get("sensor.froeling_froeling1_puffertmpunten")
+    state = hass.states.get("sensor.froling_euroturbo40_froeling1_puffertmp_unten")
     assert state
     assert state.state == "62"
     
-    send_can_string(test_can,0,"Kessel in Betrieb   ")
-    await asyncio.sleep(0.5)
-    send_can_string(test_can,0,"Kessel ausgeschalt. ")
-    await asyncio.sleep(0.5)
-    send_can_string(test_can,0,"Kessel heizt an     ")
-    await asyncio.sleep(0.5)
-    send_can_string(test_can,0,"Kesseltür ist offen ")
-    await asyncio.sleep(0.5)
-    # todo check kessel_status
-
-    # wait for first right button
     msg = await reader.get_message()
     while msg.data[0] != FrlngButtonCodes.BUTTON_RIGHT:
         msg = await reader.get_message()
+
+    send_can_string(test_can,0,"Kesseltür ist offen ")
+    send_can_string(test_can,1,"                    ")
+    send_can_string(test_can,2,"                    ")
+    send_can_string(test_can,3,"                    ")
+    await asyncio.sleep(0.5)
+   
+
+    msg = await reader.get_message()
+    while msg.data[0] != FrlngButtonCodes.BUTTON_RIGHT:
+        msg = await reader.get_message()
+
+    state = hass.states.get("sensor.froling_euroturbo40_froeling1_kessel_status")
+    assert state
+    assert state.state == "Kesseltür ist offen"
         
     reader.stop()
     notifier.stop()

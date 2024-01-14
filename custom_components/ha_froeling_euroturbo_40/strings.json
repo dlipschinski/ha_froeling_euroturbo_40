@@ -11,6 +11,63 @@
         }
       }
     }
+  },
+  "entity": {
+    "sensor": {
+      "abgas_temperatur": {
+        "name": "Abgastemperatur"
+      },
+      "ausen_temperatur": {
+        "name": "Außentemperatur"
+      },
+      "puffer_temperatur_oben": {
+        "name": "Puffer Temperatur oben"
+      },
+      "puffer_temperatur_mitte": {
+        "name": "Puffer Temperatur mitte"
+      },
+      "puffer_temperatur_unten": {
+        "name": "Puffer Temperatur unten"
+      },
+      "kessel_rucklauf_temperatur": {
+        "name": "Kessel Rücklauftemperatur"
+      },
+      "kessel_temperatur": {
+        "name": "Kessel Temperatur"
+      },
+      "puffer_ladezustand": {
+        "name": "Puffer Ladezustand"
+      },
+      "betriebsstunden": {
+        "name": "Betriebsstunden"
+      },
+      "geblase_drehzahl": {
+        "name": "Gebläse Drehzahl"
+      },
+      "stellmotor_unten": {
+        "name": "Stellmotor unten"
+      },
+      "stellmotor_oben": {
+        "name": "Stellmotor oben"
+      },
+      "sauerstoffwert": {
+        "name": "Luftsauerstoffgehalt"
+      },
+      "kessel_status": {
+        "name": "Kesselstatus"
+      },
+      "heizungspumpe1": {
+        "name": "Heizungspumpe1"
+      },
+      "heizungspumpe2": {
+        "name": "Heizungspumpe2"
+      },
+      "vorlauf_ist_temperatur_2": {
+        "name": "Vorlauf ist Temperatur"
+      },
+      "vorlauf_soll_temperatur_2": {
+        "name": "Vorlauf soll Temperatur"
+      }
+    }
   }
 }
-  
