@@ -14,6 +14,9 @@
     },
     "entity": {
       "sensor": {
+        "abgas_soll_temperatur": {
+          "name": "Abgas soll Temperatur"
+        },
         "abgas_temperatur": {
           "name": "Abgastemperatur"
         },
@@ -34,6 +37,9 @@
         },
         "kessel_temperatur": {
           "name": "Kessel Temperatur"
+        },
+        "kessel_soll_temperatur": {
+          "name": "Kessel soll Temperatur"
         },
         "puffer_ladezustand": {
           "name": "Puffer Ladezustand"

@@ -62,6 +62,12 @@ SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.TEMPERATURE,
     ),
     SensorEntityDescription(
+        key="abgastemp_soll",
+        translation_key="abgas_soll_temperatur",
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.TEMPERATURE,
+    ),
+    SensorEntityDescription(
         key="aussentemperatur",
         translation_key="ausen_temperatur",
         state_class=SensorStateClass.MEASUREMENT,
@@ -94,6 +100,12 @@ SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(
         key="kesseltemp_ist",
         translation_key="kessel_temperatur",
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.TEMPERATURE,
+    ),
+    SensorEntityDescription(
+        key="kesseltempsoll",
+        translation_key="kessel_soll_temperatur",
         state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.TEMPERATURE,
     ),
@@ -181,6 +193,7 @@ class FrlngCANArbID(enum.IntEnum):
     # 0x0c0, 0x040 and 0x022 are note used, seems to be used from main to addon board
 
 class FrlngButtonCodes(enum.IntEnum):
+    BUTTON_UP     = 0x01
     BUTTON_LEFT   = 0x02
     BUTTON_DOWN   = 0x04
     BUTTON_RIGHT  = 0x08
@@ -200,6 +213,15 @@ update_send_seq = [
             FrlngButtonCodes.BUTTON_LEFT, # now we are in the main menu (when we have been in a submenu or a error was there)
             # cursor is now on "pufferladezust."
             FrlngButtonCodes.REFRESH_DISPLAY,
+            FrlngButtonCodes.BUTTON_UP,
+            FrlngButtonCodes.BUTTON_RIGHT, # "abgastemps"
+            FrlngButtonCodes.REFRESH_DISPLAY,
+            FrlngButtonCodes.BUTTON_LEFT,
+            FrlngButtonCodes.BUTTON_UP,
+            FrlngButtonCodes.BUTTON_RIGHT, # "kesseltemps"
+            FrlngButtonCodes.REFRESH_DISPLAY,
+            FrlngButtonCodes.BUTTON_LEFT,
+            FrlngButtonCodes.BUTTON_LEFT, # back to main menu
             FrlngButtonCodes.BUTTON_RIGHT, # "puffertemps"
             FrlngButtonCodes.REFRESH_DISPLAY,
             FrlngButtonCodes.BUTTON_LEFT,  # back on pufferladezust.
