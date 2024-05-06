@@ -308,6 +308,7 @@ class FrlngCANCom():
 
     async def send_loop(self):
         """ The send loop thread """
+        LOGGER.debug("Entering CAN send loop")
         min_time = timedelta(seconds=60)
         last_update_time = utcnow()-min_time # set update time to directly start updating the display
         while self._send_running:
@@ -331,6 +332,7 @@ class FrlngCANCom():
                 last_update_time = now
             else:
                 await asyncio.sleep(0.5) # idle time
+        LOGGER.debug("Exit CAN send taks")
 
     async def can_start_update(self):
         """Start receiving"""
@@ -342,6 +344,7 @@ class FrlngCANCom():
             return
         self._send_running = True
         self._button_send_task = self._hass.async_create_background_task(self.send_loop(),"send_button_sequence_task")
+        LOGGER.debug("Started CAN bus background task")
 
     async def can_stop_update(self):
         """Stop receiving"""
