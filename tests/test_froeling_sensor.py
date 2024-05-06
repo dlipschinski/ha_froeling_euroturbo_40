@@ -59,13 +59,13 @@ async def test_sensor(hass):
     msg = await reader.get_message()
     while msg.data[0] != FrlngButtonCodes.BUTTON_RIGHT:
         msg = await reader.get_message()
-    state = hass.states.get("sensor.froling_euroturbo40_froeling1_pufferladezust")
+    state = hass.states.get("sensor.froling_euroturbo40_none_2")
     assert state
     assert state.state == "80"
-    state = hass.states.get("sensor.froling_euroturbo40_froeling1_geblase_ist")
+    state = hass.states.get("sensor.froling_euroturbo40_none_3")
     assert state
     assert state.state == "1500"
-    state = hass.states.get("sensor.froling_euroturbo40_froeling1_aussentemperatur")
+    state = hass.states.get("sensor.froling_euroturbo40_temperature")
     assert state
     assert state.state == "-1"
 
@@ -82,14 +82,14 @@ async def test_sensor(hass):
     msg = await reader.get_message()
     while msg.data[0] != FrlngButtonCodes.BUTTON_RIGHT:
         msg = await reader.get_message()
-
-    state = hass.states.get("sensor.froling_euroturbo40_froeling1_puffertmp_oben") 
+    await asyncio.sleep(2.1)
+    state = hass.states.get("sensor.froling_euroturbo40_temperature_2") 
     assert state
     assert state.state == "82"
-    state = hass.states.get("sensor.froling_euroturbo40_froeling1_puffertmp_mitte")
+    state = hass.states.get("sensor.froling_euroturbo40_temperature_3")
     assert state
     assert state.state == "72"
-    state = hass.states.get("sensor.froling_euroturbo40_froeling1_puffertmp_unten")
+    state = hass.states.get("sensor.froling_euroturbo40_temperature_4")
     assert state
     assert state.state == "62"
     
@@ -101,14 +101,14 @@ async def test_sensor(hass):
     send_can_string(test_can,1,"                    ")
     send_can_string(test_can,2,"                    ")
     send_can_string(test_can,3,"                    ")
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(2.5)
    
 
     msg = await reader.get_message()
     while msg.data[0] != FrlngButtonCodes.BUTTON_RIGHT:
         msg = await reader.get_message()
 
-    state = hass.states.get("sensor.froling_euroturbo40_froeling1_kessel_status")
+    state = hass.states.get("sensor.froling_euroturbo40_none")
     assert state
     assert state.state == "Kesseltür ist offen"
         
