@@ -340,8 +340,8 @@ class FrlngCANCom():
         except Exception as error:
             LOGGER.error("Failed to init can bus notifier. Error:" + str(error) + str(type(self._hass)))
             return
-        self._button_send_task = self._hass.async_create_background_task(self.send_loop(),"send_button_sequence_task")
         self._send_running = True
+        self._button_send_task = self._hass.async_create_background_task(self.send_loop(),"send_button_sequence_task")
 
     async def can_stop_update(self):
         """Stop receiving"""
