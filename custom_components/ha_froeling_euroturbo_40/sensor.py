@@ -170,6 +170,12 @@ SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.ENUM,
     ),
     SensorEntityDescription(
+        key="rucklaufmischer",
+        translation_key="ruecklaufmischer",
+        icon="mdi:pump",
+        device_class=SensorDeviceClass.ENUM,
+    ),
+    SensorEntityDescription(
         key="vorlauftmp2_ist",
         translation_key="vorlauf_ist_temperatur_2",
         state_class=SensorStateClass.MEASUREMENT,
@@ -181,7 +187,7 @@ SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.TEMPERATURE,
     ),
-    
+
 )
 
 SENSORS = {desc.key: desc for desc in SENSOR_TYPES}
@@ -226,6 +232,9 @@ update_send_seq = [
             FrlngButtonCodes.REFRESH_DISPLAY,
             FrlngButtonCodes.BUTTON_LEFT,  # back on pufferladezust.
             FrlngButtonCodes.BUTTON_DOWN,  # kesselrücklauf
+            FrlngButtonCodes.BUTTON_RIGHT, # Kesselrücklauf details
+            FrlngButtonCodes.REFRESH_DISPLAY,
+            FrlngButtonCodes.BUTTON_LEFT,  # kesselrücklauf
             FrlngButtonCodes.BUTTON_DOWN,  # Heizungspumpe1
             FrlngButtonCodes.BUTTON_DOWN,  # Heizungspumpe2
             FrlngButtonCodes.REFRESH_DISPLAY,
@@ -251,6 +260,7 @@ update_send_seq = [
             FrlngButtonCodes.REFRESH_DISPLAY,
             FrlngButtonCodes.BUTTON_LEFT,  # Sauerstoffwert
             FrlngButtonCodes.REFRESH_DISPLAY,
+            FrlngButtonCodes.BUTTON_LEFT,  # Pufferladezustand
             FrlngButtonCodes.BUTTON_LEFT,  # Pufferladezustand
             FrlngButtonCodes.BUTTON_LEFT,  # Pufferladezustand
 ]

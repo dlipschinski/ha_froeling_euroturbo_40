@@ -68,6 +68,9 @@
         "heizungspumpe2": {
           "name": "Heizungspumpe2"
         },
+        "ruecklaufmischer": {
+          "name": "Rücklaufmischer"
+        },
         "vorlauf_ist_temperatur_2": {
           "name": "Vorlauf ist Temperatur"
         },
