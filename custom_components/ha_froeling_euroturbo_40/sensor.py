@@ -271,6 +271,10 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     canbus=config_entry.data.get(CONF_CAN_BUS)
     LOGGER.debug("Opening " + str(canbus))
     hass.data[DOMAIN] = FrlngCANCom( hass, config_entry.data, async_add_entities)
+    def _init_can():
+        hass.data[DOMAIN].init_can()
+    await hass.async_add_executor_job(_init_can)
+
     await hass.data[DOMAIN].can_start_update()
 
 async def async_remove_entry(hass, config_entry):
@@ -296,17 +300,16 @@ class FrlngCANCom():
         self._last_line = 0
         self._registered_values = dict()
         self._pause_buttonsseq = False
+
+    def init_can(self):
+        """ Init the CAN bus """
         try:
-            self._can = self.init_can(self._can_net_dev)
+            if self._can_net_dev == "unittesting":
+                self._can = can.Bus('test_can', interface='virtual')
+            self._can = can.Bus(interface='socketcan', channel=self._can_net_dev, receive_own_messages=False)
             self._can_listeners: List[MessageRecipient] = [self.can_msg_receive,]
         except Exception as error:
             LOGGER.error("Failed to init: " + str(self._can_net_dev) + " Error:" + str(error))
-    
-    def init_can(self, can_net_dev):
-        """ Init the CAN bus """
-        if can_net_dev == "unittesting":
-            return can.Bus('test_can', interface='virtual')
-        return can.Bus(interface='socketcan', channel=can_net_dev, receive_own_messages=False)
 
     async def send_button(self,button):
         msg = can.Message(arbitration_id=FrlngCANArbID.CMD_BUTTON,is_extended_id=False,data=[button])
