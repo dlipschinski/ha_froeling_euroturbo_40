@@ -311,10 +311,10 @@ class FrlngCANCom():
     async def send_button(self,button):
         msg = can.Message(arbitration_id=FrlngCANArbID.CMD_BUTTON,is_extended_id=False,data=[button])
         self._can.send(msg)
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.15)
         msg.data[0] = FrlngButtonCodes.BUTTON_NO_BUT
         self._can.send(msg)
-        await asyncio.sleep(0.2)
+        await asyncio.sleep(0.25)
 
     async def send_loop(self):
         """ The send loop thread """
@@ -328,7 +328,7 @@ class FrlngCANCom():
                     if self._send_running == False:
                         return
                     if curr_send_seq == FrlngButtonCodes.REFRESH_DISPLAY:
-                        await asyncio.sleep(0.5)
+                        await asyncio.sleep(0.75)
                         self.parse_lcd()
                     else:
                         if self._pause_buttonsseq == True:
@@ -341,7 +341,7 @@ class FrlngCANCom():
                         await self.send_button(curr_send_seq)
                 last_update_time = now
             else:
-                await asyncio.sleep(0.5) # idle time
+                await asyncio.sleep(1.0) # idle time
         LOGGER.debug("Exit CAN send taks")
 
     async def can_start_update(self):
