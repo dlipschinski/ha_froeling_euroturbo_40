@@ -344,7 +344,8 @@ class FrlngCANCom():
                         await self.send_button(curr_send_seq)
                 last_update_time = now
             else:
-                await asyncio.sleep(1.0) # idle time
+                await asyncio.sleep(0.5) # idle time
+                self.parse_lcd() # always update default values
         LOGGER.debug("Exit CAN send taks")
 
     async def can_start_update(self):
