@@ -13,6 +13,11 @@
     }
   },
   "entity": {
+    "button": {
+      "refresh_display": {
+        "name": "Refresh display"
+      }
+    },
     "sensor": {
       "abgas_temperatur": {
         "name": "Abgastemperatur"

@@ -9,6 +9,7 @@ from homeassistant.helpers.dispatcher import (
 from homeassistant.const import UnitOfTemperature, UnitOfTime
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.util.dt import utcnow
+from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -191,6 +192,16 @@ SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
 )
 
 SENSORS = {desc.key: desc for desc in SENSOR_TYPES}
+
+BUTTON_TYPES: tuple[ButtonEntityDescription, ...] = (
+    ButtonEntityDescription(
+        key="refresh_display",
+        translation_key="refresh_display",
+        entity_category=EntityCategory.CONFIG,
+    ),
+)
+
+BUTTONS = {desc.key: desc for desc in BUTTON_TYPES}
 
 class FrlngCANArbID(enum.IntEnum):
     CMD_TIME = 0x018
@@ -474,6 +485,28 @@ class FrlngCANCom():
     def handle_time_data(self, msg):
         """Callback for time messages"""
         return
+
+class FrlngButtonEntity(ButtonEntity):
+    """Button for manually refreshing the display data."""
+
+    _attr_should_poll = False
+    _attr_has_entity_name = True
+
+    def __init__(self, device: "FrlngCANCom", entity_description: ButtonEntityDescription):
+        """Initialize a Fröling refresh button."""
+        self._device = device
+        self.entity_description = entity_description
+        self._attr_unique_id = f"{device._dev_id}_{entity_description.key}"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, device._dev_id)},
+            name=DEFAULT_DEVICE_NAME,
+        )
+
+    async def async_press(self) -> None:
+        """Trigger a refresh of the display values."""
+        await self._device.send_button(FrlngButtonCodes.REFRESH_DISPLAY)
+        self._device.parse_lcd()
+
 
 class FrlngEntity(SensorEntity):
     """Entity reading values from fröling can lcd display message."""

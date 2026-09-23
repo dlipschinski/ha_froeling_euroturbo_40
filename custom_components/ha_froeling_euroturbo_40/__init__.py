@@ -5,7 +5,7 @@ from homeassistant.const import Platform
 
 from .const import DOMAIN
 
-PLATFORMS = [Platform.SENSOR]
+PLATFORMS = [Platform.SENSOR, Platform.BUTTON]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up froeling integration from a config entry."""
